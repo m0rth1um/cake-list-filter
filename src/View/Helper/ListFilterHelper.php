@@ -197,6 +197,47 @@ class ListFilterHelper extends Helper
                 $ret[] = $this->Form->input($fromFieldName, $fromOptions);
                 $ret[] = $this->Form->input($toFieldName, $toOptions);
                 break;
+            case 'betweenDateTimes':
+                $empty = isset($options['inputOptions']['empty']) ? $options['inputOptions']['empty'] : true;
+
+                $fromFieldName = 'Filter.' . $field . '_datetimefrom';
+                $toFieldName = 'Filter.' . $field . '_datetimeto';
+
+                if (empty($options['inputOptions']['label'])) {
+                    $options['inputOptions']['label'] = $field;
+                }
+
+                $fromOptions = [
+                    'label' => $options['inputOptions']['label'] . ' ' . __d('list_filter', 'from'),
+                    'type' => 'datetime-local'
+                ];
+                $toOptions = [
+                    'label' => $options['inputOptions']['label'] . ' ' . __d('list_filter', 'to'),
+                    'type' => 'datetime-local'
+                ];
+                if (!empty($options['inputOptions']['from'])) {
+                    $fromOptions = Hash::merge($fromOptions, $options['inputOptions']['from']);
+                }
+                if (!empty($options['inputOptions']['to'])) {
+                    $toOptions = Hash::merge($toOptions, $options['inputOptions']['to']);
+                }
+
+                if ($empty) {
+                    // map the empty option to both option arrays
+                    $fromOptions['empty'] = true;
+                    $toOptions['empty'] = true;
+                    // if the empty option was set, make sure date inputs are not set to the current date by default
+                    if (empty($fromOptions['val']) && empty($this->Form->context()->val($fromFieldName))) {
+                        $fromOptions['val'] = '';
+                    }
+                    if (empty($toOptions['val']) && empty($this->Form->context()->val($toFieldName))) {
+                        $toOptions['val'] = '';
+                    }
+                }
+
+                $ret[] = $this->Form->input($fromFieldName, $fromOptions);
+                $ret[] = $this->Form->input($toFieldName, $toOptions);
+                break;
             case 'multipleselect':
                 $inputOptions = Hash::merge([
                     'type' => 'select',
@@ -336,7 +377,7 @@ class ListFilterHelper extends Helper
     public function filterActive()
     {
         $filterActive = (isset($this->_View->viewVars['filterActive'])
-                        && $this->_View->viewVars['filterActive'] === true);
+            && $this->_View->viewVars['filterActive'] === true);
 
         return $filterActive;
     }

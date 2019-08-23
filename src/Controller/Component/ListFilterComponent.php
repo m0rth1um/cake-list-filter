@@ -274,12 +274,17 @@ class ListFilterComponent extends Component
             if (substr($arg, 0, 7) != 'Filter-') {
                 continue;
             }
-            unset($betweenDate);
+            unset($betweenDate, $betweenDateTimes);
             list($filter, $model, $field) = explode('-', $arg);
 
             // if betweenDate
             if (preg_match("/([a-z_\-\.]+)_(from|to)$/i", $field, $matches)) {
                 $betweenDate = $matches[2];
+                $field = $matches[1];
+            }
+            // if betweenDateTimes
+            if (preg_match("/([a-z_\-\.]+)_(datetimefrom|datetimeto)$/i", $field, $matches)) {
+                $betweenDateTimes = $matches[2];
                 $field = $matches[1];
             }
             $conditionField = "{$model}.{$field}";
@@ -336,6 +341,22 @@ class ListFilterComponent extends Component
                 list($year, $month, $day) = explode('-', $value);
                 $viewValue = compact('year', 'month', 'day');
                 $field .= '_' . $betweenDate;
+            } elseif ($options['searchType'] == 'betweenDateTimes') {
+                $conditionField = $conditionField;
+                if ($betweenDateTimes === 'datetimefrom') {
+                    $operator = '>=';
+                } elseif ($betweenDateTimes == 'datetimeto') {
+                    $operator = '<=';
+                }
+                if (!empty($options['conditionField'])) {
+                    $conditionField = $options['conditionField'];
+                }
+                $conditionField .= ' ' . $operator;
+                list($year, $month, $daytime,) = explode('-', $value);
+                list($day, $remainder) = explode('T', $daytime);
+                list($hour, $minute) = explode(':', $remainder);
+                $viewValue = compact('year', 'month', 'day', 'hour', 'minute');
+                $field .= '_' . $betweenDateTimes;
             } elseif ($options['searchType'] == 'multipleselect') {
                 $conditionField .= ' IN';
             }
